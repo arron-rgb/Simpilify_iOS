@@ -22,8 +22,7 @@ public class UserController {
 
   @PostMapping("/create")
   public User register(@RequestBody UserDto info) {
-    User user = userService.signUp(info);
-    return user;
+    return userService.signUp(info);
   }
 
   @DeleteMapping("/remove")
