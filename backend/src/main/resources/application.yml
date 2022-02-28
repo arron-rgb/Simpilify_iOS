@@ -1,0 +1,13 @@
+server:
+  port: 7759
+
+spring:
+  application:
+    name: 6350
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/info6350?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+    username: root
+    password: stkdsb
+  main:
+    allow-circular-references: true
