@@ -26,22 +26,33 @@ public class GroupController {
   @Resource
   GroupService groupService;
 
-  @GetMapping("/all")
+  @GetMapping("")
   List<Group> getAll() {
     User info = userService.getInfo();
     return groupService.list(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, info.getId()));
   }
 
-  @DeleteMapping("/remove")
-  void remove(String id) {
+  @DeleteMapping("/{id}")
+  void remove(@PathVariable String id) {
     groupService.remove(Wrappers.<Group>lambdaQuery().eq(Group::getId, id));
   }
 
-  @PostMapping("/create")
+  @PostMapping("")
   Group create(Group group) {
     group.setUserId(userService.getId());
     groupService.save(group);
     return group;
+  }
+
+  @PutMapping("")
+  Group update(Group group) {
+    groupService.updateById(group);
+    return group;
+  }
+
+  @GetMapping("/{id}")
+  Group get(@PathVariable String id) {
+    return groupService.getById(id);
   }
 
 }

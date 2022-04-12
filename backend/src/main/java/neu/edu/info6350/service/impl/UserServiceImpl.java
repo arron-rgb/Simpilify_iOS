@@ -39,6 +39,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
       throw new MyRuntimeException(Messages.USER_EXIST);
     }
     one = new User();
+    if(!StringUtils.equals(user.getPassword(), user.getRePassword())){
+      throw new MyRuntimeException(Messages.PASSWORD_DOES_NOT_EQUAL);
+    }
+
     one.setCreatedTime(LocalDateTime.now());
     one.setUpdatedTime(LocalDateTime.now());
 
