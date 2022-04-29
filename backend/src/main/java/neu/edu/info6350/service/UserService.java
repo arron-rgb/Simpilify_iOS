@@ -18,4 +18,10 @@ public interface UserService extends IService<User> {
     return getInfo().getId();
   }
 
+  /**
+   * @param token
+   */
+  void verify(String token);
+
+  User checkExist(String username);
 }

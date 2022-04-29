@@ -1,13 +1,15 @@
 package neu.edu.info6350.controller;
 
+import static neu.edu.info6350.exception.Messages.DATA_AUTH;
+import static neu.edu.info6350.exception.Messages.TODO_DOES_NOT_EXIST;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import neu.edu.info6350.exception.PermissionException;
-import neu.edu.info6350.exception.SchemeException;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +18,14 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import neu.edu.info6350.exception.MyRuntimeException;
+import neu.edu.info6350.exception.PermissionException;
+import neu.edu.info6350.exception.SchemeException;
+import neu.edu.info6350.model.Group;
 import neu.edu.info6350.model.Todo;
 import neu.edu.info6350.model.User;
+import neu.edu.info6350.service.GroupService;
 import neu.edu.info6350.service.TodoService;
 import neu.edu.info6350.service.UserService;
-
-import static neu.edu.info6350.exception.Messages.*;
-import static neu.edu.info6350.exception.Messages.DATA_AUTH;
 
 /**
  * @author arronshentu
@@ -31,6 +34,8 @@ import static neu.edu.info6350.exception.Messages.DATA_AUTH;
 @RestController
 public class TodoController {
 
+  @Resource
+  GroupService groupService;
   @Resource
   UserService userService;
   @Resource
@@ -42,12 +47,22 @@ public class TodoController {
     return todoService.list(Wrappers.<Todo>lambdaQuery().eq(Todo::getUserId, info.getId()));
   }
 
+  @GetMapping("/group")
+  List<Todo> getAllInGroup() {
+    User info = userService.getInfo();
+    // get groupId through query
+    Group group = groupService.getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, info.getId()));
+    List<String> userIds = groupService.list(Wrappers.<Group>lambdaQuery().eq(Group::getId, group.getId())).stream()
+      .map(Group::getUserId).collect(Collectors.toList());
+    return todoService.list(Wrappers.<Todo>lambdaQuery().in(Todo::getUserId, userIds));
+  }
+
   @DeleteMapping("/{id}")
   void remove(@PathVariable String id) {
-    if(todoService.getById(id) == null){
+    if (todoService.getById(id) == null) {
       throw new MyRuntimeException(TODO_DOES_NOT_EXIST);
     }
-    if(!todoService.getById(id).getUserId().equals(userService.getId()) ){
+    if (!todoService.getById(id).getUserId().equals(userService.getId())) {
       throw new PermissionException(DATA_AUTH);
     }
     todoService.remove(Wrappers.<Todo>lambdaQuery().eq(Todo::getId, id));
@@ -68,8 +83,12 @@ public class TodoController {
 
   @PutMapping("")
   Todo update(Todo todo) {
+    if (Objects.isNull(todo.getId())) {
+      throw new MyRuntimeException("Todo id cannot be null");
+    }
+
     Todo one = todoService.getOne(Wrappers.<Todo>lambdaQuery().eq(Todo::getId, todo.getId()));
-    if(!StringUtils.equals(todo.getUserId(), one.getUserId())){
+    if (!StringUtils.equals(todo.getUserId(), one.getUserId())) {
       throw new PermissionException(DATA_AUTH);
     }
     todo.setUpdatedTime(LocalDateTime.now());
@@ -80,7 +99,7 @@ public class TodoController {
   @GetMapping("/{id}")
   Todo get(@PathVariable String id) {
     Todo one = todoService.getOne(Wrappers.<Todo>lambdaQuery().eq(Todo::getId, id));
-    if(Objects.isNull(one)){
+    if (Objects.isNull(one)) {
       throw new MyRuntimeException(TODO_DOES_NOT_EXIST);
     }
     return one;

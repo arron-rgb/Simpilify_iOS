@@ -25,6 +25,8 @@ public class User {
   @JsonIgnore
   String password;
 
+  Boolean verified;
+
   LocalDateTime createdTime;
   LocalDateTime updatedTime;
 

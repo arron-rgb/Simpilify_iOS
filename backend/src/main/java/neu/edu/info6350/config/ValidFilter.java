@@ -11,12 +11,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.log.LogMessage;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import neu.edu.info6350.model.User;
 import neu.edu.info6350.repository.UserMapper;
 import neu.edu.info6350.util.SpringContextHolder;
 
@@ -44,13 +46,13 @@ public class ValidFilter extends OncePerRequestFilter {
       return;
     }
     String username = authRequest.getName();
-    // User one = mapper.getOne(username);
+    User one = mapper.getOne(username);
     logger.trace(LogMessage.format("Found username '%s' in Basic Authorization header", username));
-    // if (!one.isVerified()) {
-    // logger.error(LogMessage.format("This account '%s' is inactive", username));
-    // renderJson(response, Result.buildFailData("This account is inactive"), MediaType.APPLICATION_JSON_VALUE);
-    // return;
-    // }
+    if (!one.getVerified()) {
+      logger.error(LogMessage.format("This account '%s' is inactive", username));
+      renderJson(response, "This account is inactive", MediaType.APPLICATION_JSON_VALUE);
+      return;
+    }
     filterChain.doFilter(request, response);
   }
 

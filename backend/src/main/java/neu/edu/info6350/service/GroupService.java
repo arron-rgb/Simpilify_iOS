@@ -7,4 +7,13 @@ import neu.edu.info6350.model.Group;
 /**
  * @author arronshentu
  */
-public interface GroupService extends IService<Group> {}
+public interface GroupService extends IService<Group> {
+
+  void invite(String email);
+
+  /**
+   * @param token
+   */
+  void acceptInvitation(String token);
+
+}

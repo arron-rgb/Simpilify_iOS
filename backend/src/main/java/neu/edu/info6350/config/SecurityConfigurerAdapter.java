@@ -29,7 +29,7 @@ public class SecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     http.httpBasic().authenticationEntryPoint(authenticationEntryPoint);
     http.addFilterAfter(new ValidFilter(), BasicAuthenticationFilter.class);
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    http.authorizeRequests().antMatchers("/", "/users/create", "/verify").permitAll().anyRequest().authenticated();
+    http.authorizeRequests().antMatchers("/verify", "/", "/users/create").permitAll().anyRequest().authenticated();
   }
 
   @Bean

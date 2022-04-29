@@ -1,5 +1,7 @@
 server:
   port: 7759
+  verify-endpoint: http://localhost:7759/verify?token=
+  join-endpoint: http://localhost:7759/join?token=
 
 spring:
   application:
@@ -12,3 +14,8 @@ spring:
   main:
     allow-circular-references: true
 
+
+aws:
+  sns:
+    from: abc@
+    topic-name: shentu
