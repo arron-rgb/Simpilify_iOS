@@ -1,0 +1,35 @@
+version: '2'
+services:
+  mysql:
+    build:
+      context: ./
+      dockerfile: ./db/Dockerfile
+    restart: always
+    container_name: info6350-db
+    image: info6350-db
+    ports:
+      - "3307:3306"
+    volumes:
+      - "./db/init.sql:/docker-entrypoint-initdb.d/1.sql"
+    environment:
+      MYSQL_ROOT_PASSWORD: "info6350_Qb4#k"
+      MYSQL_USER: "info6350"
+      MYSQL_PASSWORD: "info6350_Q2b%#@4"
+      TZ: America/New_York
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+  web:
+    build: .
+    restart: always
+    ports:
+      - "7759:7759"
+    depends_on:
+      - mysql
+    image: info6350-web
+    hostname: info6350-web
+    links:
+      - mysql:info6350-db
