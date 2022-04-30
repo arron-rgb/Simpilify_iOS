@@ -9,8 +9,6 @@ services:
     image: info6350-db
     ports:
       - "3307:3306"
-    volumes:
-      - "./db/init.sql:/docker-entrypoint-initdb.d/1.sql"
     environment:
       MYSQL_ROOT_PASSWORD: "info6350_Qb4#k"
       MYSQL_USER: "info6350"
