@@ -1,11 +1,13 @@
 package neu.edu.info6350.controller;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Resource;
 
 import neu.edu.info6350.exception.MyRuntimeException;
 import neu.edu.info6350.exception.PermissionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -24,6 +26,7 @@ import static neu.edu.info6350.exception.Messages.EXPENSE_DOES_NOT_EXIST;
 @RequestMapping("expenses")
 @RestController
 public class ExpenseController {
+  private static final String EXPENSE_ID_CANNOT_BE_NULL = "Expense id cannot be null";
   @Resource
   UserService userService;
   @Resource
@@ -36,6 +39,7 @@ public class ExpenseController {
   }
 
   @DeleteMapping("/{id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
   void remove(@PathVariable String id) {
     if(expenseService.getById(id) == null){
       throw new MyRuntimeException(EXPENSE_DOES_NOT_EXIST);
@@ -66,6 +70,9 @@ public class ExpenseController {
 
   @PutMapping("")
   Expense update(@RequestBody Expense expense) {
+    if(Objects.isNull(expense.getId())){
+      throw new MyRuntimeException(EXPENSE_ID_CANNOT_BE_NULL);
+    }
     if(!expense.getUserId().equals(userService.getId())) {
       throw new RuntimeException(DATA_AUTH);
     }

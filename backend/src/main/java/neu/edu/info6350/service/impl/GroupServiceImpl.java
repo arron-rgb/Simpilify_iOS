@@ -1,5 +1,7 @@
 package neu.edu.info6350.service.impl;
 
+import static neu.edu.info6350.exception.Messages.*;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -34,20 +36,21 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
   @Value("${server.join-endpoint}")
   String endpoint;
 
+  /**
+   *
+   * @param groupId
+   * @param userId
+   */
   private void addUser(String groupId, String userId) {
     List<Group> groups = baseMapper.selectList(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, userId));
     if (!groups.isEmpty()) {
-      throw new MyRuntimeException("User cannot add two groups");
+      throw new MyRuntimeException(USER_CANNOT_JOIN_TWO_GROUPS);
     }
     Group group = new Group();
     group.setUserId(userId);
     group.setId(groupId);
     baseMapper.insert(group);
     log.info("add {} into group {}", userId, group.getName());
-    // 1. 创建group: 检查有无group 有则抛出异常
-    // 2. 生成group链接：检查有无group，无则抛出异常，有则生成邀请链接
-    // 2.1 邀请链接是发送给特定人的，其他人cannot access
-    // 3. 点击邀请链接：1. 检查链接有效性，过期则拒绝 2. 有效则检查是否所属某个group 3. 有则拒绝 无则插入group
   }
 
   @Override
@@ -55,21 +58,24 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     User user = userService.checkExist(email);
     String id = userService.getId();
     if (StringUtils.equals(user.getId(), id)) {
-      throw new RuntimeException("You cannot invite yourself");
+      throw new RuntimeException(CANNOT_INVITE_YOURSELF);
     }
-
     if (!user.getVerified()) {
-      throw new RuntimeException("This user is still not verified");
+      throw new RuntimeException(NOT_VERIFIED);
     }
     Group group = getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, id));
     List<Group> list =
       list(Wrappers.<Group>lambdaQuery().eq(Group::getId, group.getId()).eq(Group::getUserId, user.getId()));
     if (!list.isEmpty()) {
-      throw new RuntimeException("This user has already joined your group");
+      throw new RuntimeException(ALREADY_JOINED_YOUR_GROUP);
     }
     String invitationLink = generateInvitationLink();
-    mailUtil.sendMail("Invitation", invitationLink, email);
+
+    mailUtil.sendMail(invitation, invitationLink, email);
   }
+
+  @Value("${email.invitation.subject}")
+  String invitation = "Invitation";
 
   @Resource
   MailUtil mailUtil;
@@ -79,24 +85,23 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     Group currentUserGroup = baseMapper.getOneByUserId(userService.getId());
     String existGroupUserId = localCache.getIfPresent(token);
     if (StringUtils.isEmpty(existGroupUserId)) {
-      throw new RuntimeException("Expired token");
+
+      throw new RuntimeException(EXPIRED_TOKEN);
     }
     if (StringUtils.equals(existGroupUserId, token)) {
-      throw new RuntimeException("Invalid token");
+
+      throw new RuntimeException(INVALID_TOKEN);
     }
     Group existGroup = getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, existGroupUserId), false);
     if (Objects.nonNull(currentUserGroup) && StringUtils.equals(currentUserGroup.getId(), existGroup.getId())) {
-      throw new RuntimeException("You have joined this group");
+
+      throw new RuntimeException(JOINED_THIS_GROUP);
     }
     if (Objects.nonNull(currentUserGroup)) {
-      throw new MyRuntimeException("You belong to another group");
+
+      throw new MyRuntimeException(YOU_BELONG_TO_ANOTHER_GROUP);
     }
     addUser(existGroup.getId(), userService.getId());
-    // 1. 某个用户生成邀请链接, 邀请链接设定ttl
-    // 2. 用户b点击该链接
-    // 3. 用户b登录
-    // 4. 用户b加入该group
-    // 5. todo中显示整个group的todos
   }
 
   @Resource
@@ -106,7 +111,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     String userId = userService.getId();
     String s = localCache.getIfPresent(userId);
     if (s != null) {
-      throw new MyRuntimeException("link exists");
+      throw new MyRuntimeException(LINK_EXISTS);
     }
     s = RandomStringUtils.randomAlphanumeric(6);;
     localCache.put(s, userId);

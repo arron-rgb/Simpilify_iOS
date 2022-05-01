@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import neu.edu.info6350.util.Result;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,7 +51,7 @@ public class ValidFilter extends OncePerRequestFilter {
     logger.trace(LogMessage.format("Found username '%s' in Basic Authorization header", username));
     if (!one.getVerified()) {
       logger.error(LogMessage.format("This account '%s' is inactive", username));
-      renderJson(response, "This account is inactive", MediaType.APPLICATION_JSON_VALUE);
+      renderJson(response, Result.buildFail("This account is inactive"), MediaType.APPLICATION_JSON_VALUE);
       return;
     }
     filterChain.doFilter(request, response);

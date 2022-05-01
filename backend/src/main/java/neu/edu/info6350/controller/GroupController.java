@@ -1,10 +1,13 @@
 package neu.edu.info6350.controller;
 
+import static neu.edu.info6350.exception.Messages.*;
+
 import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Resource;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -16,6 +19,7 @@ import neu.edu.info6350.model.Group;
 import neu.edu.info6350.model.User;
 import neu.edu.info6350.service.GroupService;
 import neu.edu.info6350.service.UserService;
+import neu.edu.info6350.util.Result;
 
 /**
  * @author arronshentu
@@ -37,9 +41,9 @@ public class GroupController {
   }
 
   @PostMapping("/invite")
-  String invite(@RequestBody InviteBody email) {
+  Result<String> invite(@RequestBody InviteBody email) {
     groupService.invite(email.getEmail());
-    return "success";
+    return Result.buildOkData(INVITE_SOMEONE);
   }
 
   @Data
@@ -49,6 +53,7 @@ public class GroupController {
   }
 
   @DeleteMapping("/{id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
   void remove(@PathVariable String id) {
     groupService.remove(Wrappers.<Group>lambdaQuery().eq(Group::getId, id));
   }
@@ -57,21 +62,21 @@ public class GroupController {
   Group create(Group group) {
     List<Group> list = groupService.list(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, userService.getId()));
     if (!list.isEmpty()) {
-      throw new MyRuntimeException("You belong to a group");
+      throw new MyRuntimeException(USER_CANNOT_JOIN_TWO_GROUPS);
     }
-
     group.setUserId(userService.getId());
     groupService.save(group);
     return group;
   }
 
   @PutMapping("")
+
   Group update(@RequestBody Group group) {
-    if (groupService.getBaseMapper().exists(Wrappers.<Group>lambdaQuery().eq(Group::getId, group.getId()))) {
-      throw new MyRuntimeException("Group does not exist");
-    }
     if (Objects.isNull(group.getId())) {
-      throw new MyRuntimeException("Group id cannot be null");
+      throw new MyRuntimeException(GROUP_ID_CANNOT_BE_NULL);
+    }
+    if (groupService.getBaseMapper().exists(Wrappers.<Group>lambdaQuery().eq(Group::getId, group.getId()))) {
+      throw new MyRuntimeException(GROUP_DOES_NOT_EXIST);
     }
     groupService.updateById(group);
     return group;
@@ -84,8 +89,11 @@ public class GroupController {
 
   @GetMapping("/my")
   Group getWhereAmI() {
-    // todo if group is null
-    return groupService.getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, userService.getId()));
+    Group one = groupService.getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, userService.getId()), false);
+    if (one == null) {
+      throw new MyRuntimeException(DON_T_BELONG_TO_A_GROUP);
+    }
+    return one;
   }
 
 }

@@ -15,45 +15,42 @@ import jakarta.mail.internet.MimeMultipart;
  */
 @Component
 public class MailUtil {
-  private static final String password = "BOunsCKAP5luiym7p53eGqAwM8o0QKYU83VvmlELSEYu";
-  private static final String from = "arronshentu@gmail.com";
-  private static final String username = "AKIA2EQZ22POX4NXP3HR";
-  // private static final String host = "smtp.gmail.com";
-  private static final String host = "email-smtp.us-east-1.amazonaws.com";
-  // private static final String port = "465";
-  private static final String port = "587";
+  private static final String PASSWORD = "volplsfywlhteupg";
+  private static final String FROM = "arronshentu@gmail.com";
+  private static final String USERNAME = "arronshentu@gmail.com";
+   private static final String HOST = "smtp.gmail.com";
+//  private static final String HOST = "email-smtp.us-east-1.amazonaws.com";
+   private static final String PORT = "465";
+//  private static final String PORT = "587";
 
   public void sendMail(String subject, String body, String receiver) {
     Properties properties = System.getProperties();
-    properties.put("mail.smtp.host", host);
-    properties.put("mail.smtp.port", port);
+    properties.put("mail.smtp.host", HOST);
+    properties.put("mail.smtp.port", PORT);
     properties.put("mail.smtp.ssl.enable", "true");
     properties.put("mail.smtp.auth", "true");
 
     Session session = Session.getInstance(properties, new Authenticator() {
       public PasswordAuthentication getPasswordAuthentication() {
-        return new PasswordAuthentication(username, password);
+        return new PasswordAuthentication(USERNAME, PASSWORD);
       }
     });
 
     try {
       MimeMessage message = new MimeMessage(session);
-      message.setFrom(new InternetAddress(from));
+      message.setFrom(new InternetAddress(FROM));
       message.addRecipient(Message.RecipientType.TO, new InternetAddress(receiver));
       message.setSubject(subject);
       Multipart multipart = new MimeMultipart();
       MimeBodyPart textPart = new MimeBodyPart();
-      textPart.setText(body);
+      textPart.setContent(body, "text/html; charset=utf-8");
       multipart.addBodyPart(textPart);
       message.setContent(multipart);
       Transport.send(message);
     } catch (MessagingException mex) {
       mex.printStackTrace();
+      throw new RuntimeException("Mail sending failed");
     }
   }
 
-  public static void main(String[] args) {
-    MailUtil mailUtil = new MailUtil();
-    mailUtil.sendMail("hello", "body", "shentu.k@northeastern.edu");
-  }
 }

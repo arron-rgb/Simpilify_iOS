@@ -1,7 +1,6 @@
 package neu.edu.info6350.controller;
 
-import static neu.edu.info6350.exception.Messages.DATA_AUTH;
-import static neu.edu.info6350.exception.Messages.TODO_DOES_NOT_EXIST;
+import static neu.edu.info6350.exception.Messages.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -52,12 +52,16 @@ public class TodoController {
     User info = userService.getInfo();
     // get groupId through query
     Group group = groupService.getOne(Wrappers.<Group>lambdaQuery().eq(Group::getUserId, info.getId()));
+    if(group == null){
+      throw new MyRuntimeException(DON_T_BELONG_TO_A_GROUP);
+    }
     List<String> userIds = groupService.list(Wrappers.<Group>lambdaQuery().eq(Group::getId, group.getId())).stream()
       .map(Group::getUserId).collect(Collectors.toList());
     return todoService.list(Wrappers.<Todo>lambdaQuery().in(Todo::getUserId, userIds));
   }
 
   @DeleteMapping("/{id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
   void remove(@PathVariable String id) {
     if (todoService.getById(id) == null) {
       throw new MyRuntimeException(TODO_DOES_NOT_EXIST);
@@ -82,12 +86,14 @@ public class TodoController {
   }
 
   @PutMapping("")
-  Todo update(Todo todo) {
+  Todo update(@RequestBody Todo todo) {
     if (Objects.isNull(todo.getId())) {
-      throw new MyRuntimeException("Todo id cannot be null");
+      throw new MyRuntimeException(TODO_ID_CANNOT_BE_NULL);
     }
-
     Todo one = todoService.getOne(Wrappers.<Todo>lambdaQuery().eq(Todo::getId, todo.getId()));
+    if(one == null) {
+      throw new MyRuntimeException(TODO_DOES_NOT_EXIST);
+    }
     if (!StringUtils.equals(todo.getUserId(), one.getUserId())) {
       throw new PermissionException(DATA_AUTH);
     }
@@ -98,6 +104,10 @@ public class TodoController {
 
   @GetMapping("/{id}")
   Todo get(@PathVariable String id) {
+    if (Objects.isNull(id)) {
+      throw new MyRuntimeException(TODO_ID_CANNOT_BE_NULL);
+    }
+
     Todo one = todoService.getOne(Wrappers.<Todo>lambdaQuery().eq(Todo::getId, id));
     if (Objects.isNull(one)) {
       throw new MyRuntimeException(TODO_DOES_NOT_EXIST);

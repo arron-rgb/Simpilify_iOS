@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import neu.edu.info6350.service.GroupService;
 import neu.edu.info6350.service.UserService;
+import neu.edu.info6350.util.Result;
 
 /**
  * @author arronshentu
@@ -18,15 +19,15 @@ import neu.edu.info6350.service.UserService;
 public class HomeController {
 
   @GetMapping("verify")
-  public String verify(String token) {
+  public Result<String> verify(String token) {
     userService.verify(token);
-    return "success";
+    return Result.buildOk("success");
   }
 
   @GetMapping("join")
-  public String joinGroup(String token) {
+  public Result<String> joinGroup(String token) {
     groupService.acceptInvitation(token);
-    return "success";
+    return Result.buildOk("success");
   }
 
   @GetMapping

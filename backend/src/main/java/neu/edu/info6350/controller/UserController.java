@@ -6,6 +6,7 @@ import javax.validation.Valid;
 import neu.edu.info6350.exception.MyRuntimeException;
 import neu.edu.info6350.exception.PermissionException;
 import neu.edu.info6350.exception.SchemeException;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,7 @@ public class UserController {
   }
 
   @DeleteMapping("/{mail}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void delete(@PathVariable String mail) {
     List<User> users = userService.list(Wrappers.<User>lambdaQuery().eq(User::getEmail, mail));
     if(users.isEmpty()){

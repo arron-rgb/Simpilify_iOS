@@ -30,6 +30,8 @@ import neu.edu.info6350.repository.UserMapper;
 import neu.edu.info6350.service.UserService;
 import neu.edu.info6350.util.MailUtil;
 
+import static neu.edu.info6350.exception.Messages.*;
+
 /**
  * @author arronshentu
  */
@@ -66,11 +68,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     String randomAlphanumeric = RandomStringUtils.randomAlphanumeric(6);
     String url = entryPoint + randomAlphanumeric;
     log.info("{} register", user.getEmail());
-    mailUtil.sendMail("Register Link", generateTemplate(url, user.getEmail()), user.getEmail());
+
+    mailUtil.sendMail(registerLink, generateTemplate(url, user.getEmail()), user.getEmail());
     mapper.insert(one);
     localCache.put(randomAlphanumeric, one.getId());
     return one;
   }
+  @Value("${email.registration.subject}")
+  String registerLink = "Register Link";
 
   @Override
   public User getInfo() {
@@ -78,7 +83,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     if (StringUtils.isEmpty(auth.getName()) || "anonymousUser".equals(auth.getName())) {
       throw new AuthenticationServiceException("Unauthorized");
     }
-
     return checkExist(auth.getName());
   }
 
@@ -86,14 +90,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
   public void verify(String token) {
     String userId = localCache.getIfPresent(token);
     if (StringUtils.isEmpty(userId)) {
-      throw new MyRuntimeException("Link is not valid");
+      throw new MyRuntimeException(LINK_IS_NOT_VALID);
     }
     User user = mapper.selectById(userId);
     if (StringUtils.isEmpty(userId) || Objects.isNull(user)) {
-      throw new MyRuntimeException("User does not exist");
+      throw new MyRuntimeException(USER_DOES_NOT_EXIST);
     }
     if (user.getVerified()) {
-      throw new MyRuntimeException("User has already activated");
+      throw new MyRuntimeException(USER_HAS_ALREADY_ACTIVATED);
     }
     user.setVerified(true);
     log.info("{} verify", user.getEmail());
@@ -112,11 +116,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
   @Override
   public User checkExist(String username) {
     if (StringUtils.isBlank(username)) {
-      throw new MyRuntimeException("Username cannot be blank");
+      throw new MyRuntimeException(USERNAME_CANNOT_BE_BLANK);
     }
     User one = mapper.getOne(username);
     if (one == null) {
-      throw new MyRuntimeException("User does not exist");
+      throw new MyRuntimeException(USER_DOES_NOT_EXIST);
     }
     return one;
   }

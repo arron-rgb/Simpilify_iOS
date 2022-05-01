@@ -52,7 +52,7 @@
 ## Verify
 
 1. Expired Link
-2. Invliad Link
+2. Invalid Link
 3. User does not exist
 4. Already verified
 
