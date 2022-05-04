@@ -1,0 +1,25 @@
+server:
+  port: 7759
+  verify-endpoint: http://localhost:7759/verify?token=
+  join-endpoint: http://localhost:7759/join?token=
+
+spring:
+  application:
+    name: 6350
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://info6350-db:3306/info6350?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+    username: root
+    password: info6350_Qb4#k
+  main:
+    allow-circular-references: true
+
+
+flyway:
+  enabled: true
+  #  clean-disabled: true
+  locations: classpath:db/migration
+
+email:
+  invitation:
+    subject: Invitation
